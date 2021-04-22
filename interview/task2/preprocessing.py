@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt # to show images
 from PIL import Image # to read images
 import os
 import glob
+import csv
 
 def bounding_box(image_name):
 
@@ -41,7 +42,7 @@ def bounding_box(image_name):
                         if attributes.text == 'yes':
                           mask = 1
                         if attributes.text == 'invisible':
-                          mask = 2
+                          mask = 0
                         if attributes.text == 'no':
                           mask = 0
                         if attributes.text == 'wrong':
@@ -63,15 +64,27 @@ all_images=os.listdir("dataset/images/")
 root_images = "dataset/images/"
 new_dataset = "dataset/images_new/"
 
-for i,image in enumerate(all_images):
-    box, labels = bounding_box(image)
-    print(box)
-    print(labels)
-    j = 0
-    for i, bbox in enumerate(box):
-      
-      j = j+1
-      im=Image.open(os.path.join(root_images,image))
-      im=im.crop(bbox)
+with open('dataset.csv', mode='w') as csv_file:
+        fieldnames = ['image', 'helmet', 'mask']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
 
-      im = im.save(new_dataset+image.rsplit(".", 1)[0]+"_"+str(j)+".jpg")
+        for i,image in enumerate(all_images):
+            box, labels = bounding_box(image)
+
+            
+
+            j = 0
+
+            for i, bbox in enumerate(box):
+
+                if len(bbox) != 0:
+            
+                    j = j+1
+                    print(bbox)
+                    print(labels[i])
+                    im=Image.open(os.path.join(root_images,image))
+                    im=im.crop(bbox)
+                    im = im.save(new_dataset+image.rsplit(".", 1)[0]+"_"+str(j)+".jpg")
+
+                    writer.writerow({'image': new_dataset+image.rsplit(".", 1)[0]+"_"+str(j)+".jpg", 'helmet': labels[i][0], 'mask': labels[i][1]})
